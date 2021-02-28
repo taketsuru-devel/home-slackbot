@@ -20,11 +20,7 @@ FROM alpine:3.10
 
 RUN apk add --no-cache --update tini ca-certificates
 
-RUN addgroup -g 1000 app && adduser -D -H -u 1000 -G app -s /bin/sh app
-
-COPY --from=builder --chown=app:app $PROJECT_PATH/$SRC_PATH/$BIN_NAME /$BIN_NAME
-
-USER app:app
+COPY --from=builder $PROJECT_PATH/$SRC_PATH/$BIN_NAME /$BIN_NAME
 
 EXPOSE 14000
 ENTRYPOINT ["tini", "--", "/app"]
