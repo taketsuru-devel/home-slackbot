@@ -1,0 +1,6 @@
+REGION=***
+ECR_PATH=***.dkr.ecr.$REGION.amazonaws.com
+IMAGE_PATH=$ECR_PATH/***
+docker build . --build-arg PROJECT_PATH=/go/src/*** -t $IMAGE_PATH:latest
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_PATH
+docker push $IMAGE_PATH
