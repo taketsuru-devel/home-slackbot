@@ -22,6 +22,10 @@ func main() {
 	// Useful when encountering issues
 	// slack.New("YOUR_TOKEN_HERE", slack.OptionDebug(true))
 
+	http.HandleFunc("/homeiot-to-slackbot", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text")
+		w.Write([]byte("success from lambda"))
+	})
 	http.HandleFunc("/events-endpoint", func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
