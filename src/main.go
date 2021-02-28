@@ -82,11 +82,11 @@ func main() {
 		channelId := payload.Channel.GroupConversation.Conversation.ID
 		fmt.Printf("%#v\n", payload.ActionCallback.BlockActions[0].Value)
 		api.PostMessage(channelId, slack.MsgOptionText(fmt.Sprintf("%sを受け付けました", payload.ActionCallback.BlockActions[0].Text.Text), false))
-		// TODO move lambda to us-west-2
 		sess, _ := session.NewSessionWithOptions(session.Options{
-			Profile: "default",
+			//Profile; "default",
 			Config: aws.Config{
-				Region: aws.String("us-west-2"),
+				Region:                        aws.String("us-west-2"),
+				CredentialsChainVerboseErrors: aws.Bool(true),
 			},
 		})
 		svc := lambda.New(sess)
