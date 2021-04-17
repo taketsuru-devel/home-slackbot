@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/followedwind/slackbot/internal/endpoint"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -13,65 +12,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/slackevents"
 )
 
 func main() {
 	api := slack.New(os.Getenv("SLACK_BOT_TOKEN"), slack.OptionDebug(true))
-	signingSecret := os.Getenv("SIGNING_SECRET")
 	// If you set debugging, it will log all requests to the console
 	// Useful when encountering issues
 	// slack.New("YOUR_TOKEN_HERE", slack.OptionDebug(true))
 
 	http.Handle("/homeiot-to-slackbot", &endpoint.HomeIotEndpoint{})
-
-	http.HandleFunc("/events-endpoint", func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		sv, err := slack.NewSecretsVerifier(r.Header, signingSecret)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		if _, err := sv.Write(body); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if err := sv.Ensure(); err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if eventsAPIEvent.Type == slackevents.URLVerification {
-			var r *slackevents.ChallengeResponse
-			err := json.Unmarshal([]byte(body), &r)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "text")
-			w.Write([]byte(r.Challenge))
-		}
-		//fmt.Printf("%#v\n", eventsAPIEvent)
-		//fmt.Printf("%#v\n", eventsAPIEvent.Data)
-		fmt.Printf("%#v\n", eventsAPIEvent.InnerEvent.Data)
-		if eventsAPIEvent.Type == slackevents.CallbackEvent {
-			innerEvent := eventsAPIEvent.InnerEvent
-			switch ev := innerEvent.Data.(type) {
-			case *slackevents.AppMentionEvent:
-				//api.PostMessage(ev.Channel, slack.MsgOptionText("Yes, hello.", false))
-				api.PostMessage(ev.Channel, endpoint.CommandList())
-			}
-		}
-	})
+	http.Handle("/events-endpoint", &endpoint.EventEndpoint{})
 	http.HandleFunc("/interactive", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("interactive")
 		var payload slack.InteractionCallback
