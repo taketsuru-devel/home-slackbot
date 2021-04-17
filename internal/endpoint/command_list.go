@@ -1,10 +1,10 @@
-package main
+package endpoint
 
 import (
 	"github.com/slack-go/slack"
 )
 
-func commandList() slack.MsgOption {
+func CommandList() slack.MsgOption {
 
 	headerText := slack.NewTextBlockObject("mrkdwn", "お呼びでございましょうか\n*ご用件は？*", false, false)
 	headerSection := slack.NewSectionBlock(headerText, nil, nil)

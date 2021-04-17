@@ -10,14 +10,14 @@ RUN apk add --no-cache git make
 
 WORKDIR $PROJECT_PATH
 
-COPY go.mod go.sum ./
+COPY go.mod .
+COPY go.sum .
 
 RUN go mod download
 
 WORKDIR $SRC_PATH
-COPY $SRC_PATH/* ./
+COPY . .
 RUN go build -o $BIN_PATH
-RUN ls /
 
 FROM alpine:3.10
 ARG BIN_PATH
@@ -28,9 +28,8 @@ RUN apk add --no-cache --update tini ca-certificates
 
 # COPY --from=builder --chown=app:app $BIN_PATH /$BIN_PATH
 COPY --from=builder $BIN_PATH $BIN_PATH
-RUN ls /
 # USER app:app
 
 EXPOSE 13000
-# equivalent of $BIN_PATH
+
 ENTRYPOINT ["tini", "--", "/app"]

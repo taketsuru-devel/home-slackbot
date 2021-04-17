@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/followedwind/slackbot/internal/endpoint"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -22,10 +23,8 @@ func main() {
 	// Useful when encountering issues
 	// slack.New("YOUR_TOKEN_HERE", slack.OptionDebug(true))
 
-	http.HandleFunc("/homeiot-to-slackbot", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text")
-		w.Write([]byte("success from lambda"))
-	})
+	http.Handle("/homeiot-to-slackbot", &endpoint.HomeIotEndpoint{})
+
 	http.HandleFunc("/events-endpoint", func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -69,7 +68,7 @@ func main() {
 			switch ev := innerEvent.Data.(type) {
 			case *slackevents.AppMentionEvent:
 				//api.PostMessage(ev.Channel, slack.MsgOptionText("Yes, hello.", false))
-				api.PostMessage(ev.Channel, commandList())
+				api.PostMessage(ev.Channel, endpoint.CommandList())
 			}
 		}
 	})
