@@ -3,6 +3,7 @@ package endpoint
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/followedwind/slackbot/internal/util"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"io/ioutil"
@@ -49,9 +50,7 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text")
 		w.Write([]byte(r.Challenge))
 	}
-	//fmt.Printf("%#v\n", eventsAPIEvent)
-	//fmt.Printf("%#v\n", eventsAPIEvent.Data)
-	fmt.Printf("%#v\n", eventsAPIEvent.InnerEvent.Data)
+	util.DebugLog(fmt.Sprintf("%#v\n", eventsAPIEvent.InnerEvent.Data))
 	if eventsAPIEvent.Type == slackevents.CallbackEvent {
 		innerEvent := eventsAPIEvent.InnerEvent
 		switch ev := innerEvent.Data.(type) {

@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/followedwind/slackbot/internal/util"
 	"github.com/slack-go/slack"
 	"net/http"
 	"os"
@@ -19,17 +20,16 @@ func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// Useful when encountering issues
 	// slack.New("YOUR_TOKEN_HERE", slack.OptionDebug(true))
 	api := slack.New(os.Getenv("SLACK_BOT_TOKEN"), slack.OptionDebug(true))
-	fmt.Println("interactive")
 	var payload slack.InteractionCallback
 	err := json.Unmarshal([]byte(r.FormValue("payload")), &payload)
 	if err != nil {
-		fmt.Printf("Could not parse action response JSON: %v", err)
+		util.ErrorLog(fmt.Sprintf("Could not parse action response JSON: %v", err))
 		//ここでエラーだとChannelの取得もできない
 		//api.PostMessage(payload.Channel, slack.MsgOptionText(fmt.Printf("指令の解析に失敗しました: %v", err), false))
 		return
 	}
 	channelId := payload.Channel.GroupConversation.Conversation.ID
-	fmt.Printf("%#v\n", payload.ActionCallback.BlockActions[0].Value)
+	util.DebugLog(fmt.Sprintf("%#v", payload.ActionCallback.BlockActions[0].Value))
 	api.PostMessage(channelId, slack.MsgOptionText(fmt.Sprintf("%sを受け付けました", payload.ActionCallback.BlockActions[0].Text.Text), false))
 	sess, _ := session.NewSessionWithOptions(session.Options{
 		//Profile; "default",

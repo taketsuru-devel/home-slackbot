@@ -2,7 +2,7 @@ package serverwrap
 
 import (
 	"context"
-	"fmt"
+	"github.com/followedwind/slackbot/internal/util"
 	"net/http"
 	"time"
 )
@@ -32,8 +32,8 @@ func (sw *serverWrap) AddHandle(path string, handler http.Handler) {
 
 func (sw *serverWrap) Start() {
 	go func() {
-		fmt.Println("Server listening")
-		fmt.Println(sw.server.ListenAndServe())
+		util.InfoLog("Server listening")
+		util.InfoLog(sw.server.ListenAndServe().Error())
 	}()
 }
 
@@ -41,8 +41,8 @@ func (sw *serverWrap) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := sw.server.Shutdown(ctx); err != nil {
-		fmt.Println(err.Error())
+		util.ErrorLog(err.Error())
 	} else {
-		fmt.Println("Server Done")
+		util.InfoLog("Server Done")
 	}
 }

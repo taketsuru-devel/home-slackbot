@@ -1,15 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/followedwind/slackbot/internal/endpoint"
 	"github.com/followedwind/slackbot/internal/serverwrap"
+	"github.com/followedwind/slackbot/internal/util"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	debug := flag.Bool("debug", false, "sets log level to debug")
+	prettyLog := flag.Bool("pretty_log", false, "sets pretty log")
+	flag.Parse()
+	util.InitLog(*debug, *prettyLog)
 
 	server := serverwrap.NewServer(":13000")
 
@@ -26,6 +32,6 @@ func main() {
 func waitSignal() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, os.Interrupt)
-	fmt.Printf("terminate signal(%d) received\n", <-quit)
+	util.DebugLog(fmt.Sprintf("terminate signal(%d) received", <-quit))
 	close(quit)
 }
