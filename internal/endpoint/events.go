@@ -37,10 +37,9 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text")
 		w.Write([]byte(r.Challenge))
-	}
-	util.DebugLog(fmt.Sprintf("%#v\n", eventsAPIEvent.InnerEvent.Data))
-	if eventsAPIEvent.Type == slackevents.CallbackEvent {
+	} else if eventsAPIEvent.Type == slackevents.CallbackEvent {
 		innerEvent := eventsAPIEvent.InnerEvent
+		util.DebugLog(fmt.Sprintf("%#v\n", innerEvent))
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.AppMentionEvent:
 			//api.PostMessage(ev.Channel, slack.MsgOptionText("Yes, hello.", false))

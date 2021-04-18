@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+//https://pkg.go.dev/github.com/slack-go/slack
+
 var clientOptions []slack.Option
 
 func GetSlackClient() *slack.Client {
