@@ -16,6 +16,7 @@ func main() {
 	prettyLog := flag.Bool("pretty_log", false, "sets pretty log")
 	flag.Parse()
 	util.InitLog(*debug, *prettyLog)
+	util.InitSlackClient(false, false)
 
 	server := serverwrap.NewServer(":13000")
 

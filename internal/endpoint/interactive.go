@@ -9,23 +9,18 @@ import (
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/slack-go/slack"
 	"net/http"
-	"os"
 	"strings"
 )
 
 type InteractiveEndpoint struct{}
 
 func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// If you set debugging, it will log all requests to the console
-	// Useful when encountering issues
-	// slack.New("YOUR_TOKEN_HERE", slack.OptionDebug(true))
-	api := slack.New(os.Getenv("SLACK_BOT_TOKEN"), slack.OptionDebug(true))
+	api := util.GetSlackClient()
 	var payload slack.InteractionCallback
 	err := json.Unmarshal([]byte(r.FormValue("payload")), &payload)
 	if err != nil {
 		util.ErrorLog(fmt.Sprintf("Could not parse action response JSON: %v", err))
 		//ここでエラーだとChannelの取得もできない
-		//api.PostMessage(payload.Channel, slack.MsgOptionText(fmt.Printf("指令の解析に失敗しました: %v", err), false))
 		return
 	}
 	channelId := payload.Channel.GroupConversation.Conversation.ID

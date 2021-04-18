@@ -4,36 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/followedwind/slackbot/internal/util"
-	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 type EventEndpoint struct{}
 
 func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	api := slack.New(os.Getenv("SLACK_BOT_TOKEN"), slack.OptionDebug(true))
-	signingSecret := os.Getenv("SIGNING_SECRET")
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	sv, err := slack.NewSecretsVerifier(r.Header, signingSecret)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if _, err := sv.Write(body); err != nil {
+	if err := util.VerifySlackSecret(r); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if err := sv.Ensure(); err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 	eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(body), slackevents.OptionNoVerifyToken())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -56,7 +44,7 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.AppMentionEvent:
 			//api.PostMessage(ev.Channel, slack.MsgOptionText("Yes, hello.", false))
-			api.PostMessage(ev.Channel, commandList())
+			util.GetSlackClient().PostMessage(ev.Channel, commandList())
 		}
 	}
 }
