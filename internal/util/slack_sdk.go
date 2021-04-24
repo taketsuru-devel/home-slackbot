@@ -35,14 +35,13 @@ func VerifySlackSecret(r *http.Request) error {
 	return nil
 }
 
-func InitSlackClient(debug bool, test bool) {
+func InitSlackClient(debug bool, serverUrl *string) {
 	options := make([]slack.Option, 0, 2)
 	if debug {
 		options = append(options, slack.OptionDebug(true))
 	}
-	if test {
-		//tekito
-		options = append(options, slack.OptionAPIURL("http://localhost:6000"))
+	if serverUrl != nil {
+		options = append(options, slack.OptionAPIURL(*serverUrl))
 	}
 	clientOptions = options
 }
