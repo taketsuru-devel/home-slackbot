@@ -3,18 +3,19 @@ package serverwrap
 import (
 	"context"
 	"github.com/followedwind/slackbot/internal/util"
+	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 )
 
 type serverWrap struct {
 	server *http.Server
-	mux    *http.ServeMux
+	mux    *mux.Router
 }
 
 func NewServer(addr string) *serverWrap {
 	sw := serverWrap{}
-	sw.mux = http.NewServeMux()
+	sw.mux = mux.NewRouter()
 	sw.server = &http.Server{
 		Addr:         addr,
 		Handler:      sw.mux,
@@ -26,8 +27,8 @@ func NewServer(addr string) *serverWrap {
 	return &sw
 }
 
-func (sw *serverWrap) AddHandle(path string, handler http.Handler) {
-	sw.mux.Handle(path, handler)
+func (sw *serverWrap) AddHandle(path string, handler http.Handler) *mux.Route {
+	return sw.mux.Handle(path, handler)
 }
 
 func (sw *serverWrap) Start() {
