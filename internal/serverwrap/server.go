@@ -2,6 +2,7 @@ package serverwrap
 
 import (
 	"context"
+	"errors"
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -34,7 +35,9 @@ func (sw *serverWrap) AddHandle(path string, handler http.Handler) *mux.Route {
 func (sw *serverWrap) Start() {
 	go func() {
 		util.InfoLog("Server listening")
-		util.InfoLog(sw.server.ListenAndServe().Error())
+		if serverErr := sw.server.ListenAndServe(); !errors.Is(serverErr, http.ErrServerClosed) {
+			util.ErrorLog(serverErr.Error())
+		}
 	}()
 }
 
