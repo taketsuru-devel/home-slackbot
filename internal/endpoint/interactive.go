@@ -34,8 +34,16 @@ func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	//モノに指令
 	commands := strings.Split(command, ":")
 	responseText := "処置しました"
-	if err := interactive.IotInvoke(commands[0], commands[1]); err != nil {
-		responseText = fmt.Sprintf("処置に失敗しました: %v", err)
+	if commands[0] == "iot" {
+		if err := interactive.IotInvoke(commands[1], commands[2]); err != nil {
+			responseText = fmt.Sprintf("処置に失敗しました: %v", err)
+		}
+	} else if commands[0] == "ec2" {
+		if err := interactive.Ec2Invoke(commands[1], commands[2]); err != nil {
+			responseText = fmt.Sprintf("処置に失敗しました: %v", err)
+		}
+	} else {
+		responseText = "対象が未定義です"
 	}
 	api.PostMessage(channelId, slack.MsgOptionText(responseText, false))
 }

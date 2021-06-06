@@ -17,24 +17,24 @@ func GetSlackClient() *slack.Client {
 	return slack.New(os.Getenv("SLACK_BOT_TOKEN"), clientOptions...)
 }
 
-func VerifySlackSecret(r *http.Request) error {
+func SlackRequestPreprocess(r *http.Request) (*[]byte, error) {
 	signingSecret := os.Getenv("SIGNING_SECRET")
 	sv, err := slack.NewSecretsVerifier(r.Header, signingSecret)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer r.Body.Close()
 	if _, err := sv.Write(body); err != nil {
-		return err
+		return nil, err
 	}
 	if err := sv.Ensure(); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &body, nil
 }
 
 func InitSlackClient(debug bool, serverUrl *string, loggerWriter io.Writer) {
