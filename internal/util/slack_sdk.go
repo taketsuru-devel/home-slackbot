@@ -2,7 +2,9 @@ package util
 
 import (
 	"github.com/slack-go/slack"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 )
@@ -35,13 +37,16 @@ func VerifySlackSecret(r *http.Request) error {
 	return nil
 }
 
-func InitSlackClient(debug bool, serverUrl *string) {
-	options := make([]slack.Option, 0, 2)
+func InitSlackClient(debug bool, serverUrl *string, loggerWriter io.Writer) {
+	options := make([]slack.Option, 0, 3)
 	if debug {
 		options = append(options, slack.OptionDebug(true))
 	}
 	if serverUrl != nil {
 		options = append(options, slack.OptionAPIURL(*serverUrl))
+	}
+	if loggerWriter != nil {
+		options = append(options, slack.OptionLog(log.New(loggerWriter, "slacktest", log.LstdFlags|log.Lshortfile)))
 	}
 	clientOptions = options
 }

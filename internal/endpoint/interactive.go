@@ -3,6 +3,7 @@ package endpoint
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/followedwind/slackbot/internal/interactive"
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/slack-go/slack"
 	"net/http"
@@ -33,7 +34,7 @@ func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	//モノに指令
 	commands := strings.Split(command, ":")
 	responseText := "処置しました"
-	if err := util.IotInvoke(commands[0], commands[1]); err != nil {
+	if err := interactive.IotInvoke(commands[0], commands[1]); err != nil {
 		responseText = fmt.Sprintf("処置に失敗しました: %v", err)
 	}
 	api.PostMessage(channelId, slack.MsgOptionText(responseText, false))
