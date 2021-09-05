@@ -34,9 +34,9 @@ func (sw *serverWrap) AddHandle(path string, handler http.Handler) *mux.Route {
 
 func (sw *serverWrap) Start() {
 	go func() {
-		util.InfoLog("Server listening")
+		util.InfoLog("Server listening", 0)
 		if serverErr := sw.server.ListenAndServe(); !errors.Is(serverErr, http.ErrServerClosed) {
-			util.ErrorLog(serverErr.Error())
+			util.ErrorLog(serverErr.Error(), 0)
 		}
 	}()
 }
@@ -45,8 +45,8 @@ func (sw *serverWrap) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := sw.server.Shutdown(ctx); err != nil {
-		util.ErrorLog(err.Error())
+		util.ErrorLog(err.Error(), 0)
 	} else {
-		util.InfoLog("Server Done")
+		util.InfoLog("Server Done", 0)
 	}
 }

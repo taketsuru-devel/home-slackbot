@@ -27,7 +27,7 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if eventsAPIEvent != nil && eventsAPIEvent.Type == slackevents.CallbackEvent {
 		//本題
 		innerEvent := eventsAPIEvent.InnerEvent
-		util.DebugLog(fmt.Sprintf("%#v\n", innerEvent))
+		util.DebugLog(fmt.Sprintf("%#v\n", innerEvent), 0)
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.AppMentionEvent:
 			text := strings.ReplaceAll(ev.Text, "<@U01MY2T85LM>", "")

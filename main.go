@@ -33,6 +33,6 @@ func main() {
 func waitSignal() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, os.Interrupt)
-	util.DebugLog(fmt.Sprintf("terminate signal(%d) received", <-quit))
+	util.DebugLog(fmt.Sprintf("terminate signal(%d) received", <-quit), 0)
 	close(quit)
 }

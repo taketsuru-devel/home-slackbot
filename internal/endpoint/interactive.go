@@ -17,7 +17,7 @@ func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	var payload slack.InteractionCallback
 	err := json.Unmarshal([]byte(r.FormValue("payload")), &payload)
 	if err != nil {
-		util.ErrorLog(fmt.Sprintf("Could not parse action response JSON: %v", err))
+		util.ErrorLog(fmt.Sprintf("Could not parse action response JSON: %v", err), 0)
 		//ここでエラーだとChannelの取得もできない
 		return
 	}
@@ -25,7 +25,7 @@ func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	command := payload.ActionCallback.BlockActions[0].Value
 	commandDisp := payload.ActionCallback.BlockActions[0].Text.Text
 
-	util.DebugLog(fmt.Sprintf("command:%#v", payload.ActionCallback.BlockActions[0].Value))
+	util.DebugLog(fmt.Sprintf("command:%#v", payload.ActionCallback.BlockActions[0].Value), 0)
 
 	//とりあえず返事
 	api := util.GetSlackClient()
