@@ -1,7 +1,6 @@
 package endpoint
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -17,34 +16,15 @@ import (
 type EventEndpoint struct{}
 
 func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//署名の検証
-	body, err := util.SlackRequestPreprocess(r)
+	//前処理
+	eventsAPIEvent, err := util.SlackRequestPreprocess(w, r)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	//event型の取得
-	eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(*body), slackevents.OptionNoVerifyToken())
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	//slackからのAPI検証
-	if eventsAPIEvent.Type == slackevents.URLVerification {
-		var r *slackevents.ChallengeResponse
-		err := json.Unmarshal(*body, &r)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
-		w.Header().Set("Content-Type", "text")
-		w.Write([]byte(r.Challenge))
-	} else if eventsAPIEvent.Type == slackevents.CallbackEvent {
+	if eventsAPIEvent != nil && eventsAPIEvent.Type == slackevents.CallbackEvent {
 		//本題
 		innerEvent := eventsAPIEvent.InnerEvent
 		util.DebugLog(fmt.Sprintf("%#v\n", innerEvent))
