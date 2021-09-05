@@ -17,12 +17,15 @@ import (
 type EventEndpoint struct{}
 
 func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	//署名の検証
 	body, err := util.SlackRequestPreprocess(r)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	//event型の取得
 	eventsAPIEvent, err := slackevents.ParseEvent(json.RawMessage(*body), slackevents.OptionNoVerifyToken())
 	if err != nil {
 		fmt.Println(err)
@@ -30,6 +33,7 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//slackからのAPI検証
 	if eventsAPIEvent.Type == slackevents.URLVerification {
 		var r *slackevents.ChallengeResponse
 		err := json.Unmarshal(*body, &r)
@@ -41,6 +45,7 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text")
 		w.Write([]byte(r.Challenge))
 	} else if eventsAPIEvent.Type == slackevents.CallbackEvent {
+		//本題
 		innerEvent := eventsAPIEvent.InnerEvent
 		util.DebugLog(fmt.Sprintf("%#v\n", innerEvent))
 		switch ev := innerEvent.Data.(type) {
