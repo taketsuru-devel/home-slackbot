@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/followedwind/slackbot/internal/endpoint"
-	"github.com/followedwind/slackbot/internal/serverwrap"
 	"github.com/followedwind/slackbot/internal/util"
+	"github.com/taketsuru-devel/gorilla-microservice-skeleton/serverwrap"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,7 +25,7 @@ func main() {
 	server.AddHandle("/interactive", &endpoint.InteractiveEndpoint{}).Methods("POST")
 
 	server.Start()
-	defer server.Stop()
+	defer server.Stop(60)
 
 	waitSignal()
 }
