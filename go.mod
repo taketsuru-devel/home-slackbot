@@ -7,5 +7,5 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/rs/zerolog v1.25.0
 	github.com/slack-go/slack v0.9.4
-	github.com/taketsuru-devel/gorilla-microservice-skeleton v0.0.2
+	github.com/taketsuru-devel/gorilla-microservice-skeleton v0.0.3
 )

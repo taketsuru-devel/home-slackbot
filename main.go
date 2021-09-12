@@ -2,13 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/followedwind/slackbot/internal/endpoint"
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/taketsuru-devel/gorilla-microservice-skeleton/serverwrap"
-	"os"
-	"os/signal"
-	"syscall"
+	"github.com/taketsuru-devel/gorilla-microservice-skeleton/skeletonutil"
 )
 
 func main() {
@@ -27,12 +24,5 @@ func main() {
 	server.Start()
 	defer server.Stop(60)
 
-	waitSignal()
-}
-
-func waitSignal() {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, os.Interrupt)
-	util.DebugLog(fmt.Sprintf("terminate signal(%d) received", <-quit), 0)
-	close(quit)
+	skeletonutil.WaitSignal()
 }
