@@ -3,6 +3,7 @@ package endpoint
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,22 +12,24 @@ import (
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+	"github.com/taketsuru-devel/gorilla-microservice-skeleton/slackwrap"
 )
 
-type EventEndpoint struct{}
-
-func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//前処理
-	eventsAPIEvent, err := util.SlackRequestPreprocess(w, r)
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+func GetEventHandler() *slackwrap.EventSubscribeEndpoint {
+	signingSecret := os.Getenv("SIGNING_SECRET")
+	return &slackwrap.EventSubscribeEndpoint{
+		Handler:       &eventHandler{},
+		SigningSecret: &signingSecret,
 	}
+}
 
-	if eventsAPIEvent != nil && eventsAPIEvent.Type == slackevents.CallbackEvent {
-		//本題
-		innerEvent := eventsAPIEvent.InnerEvent
+type eventHandler struct{}
+
+func (h *eventHandler) Handle() slackwrap.EventSubscribeHandlerFunc {
+	return (func(w http.ResponseWriter, r *http.Request, ev *slackevents.EventsAPIEvent) {
+		util.InfoLog(fmt.Sprintf("%v", ev.InnerEvent.Data), 0)
+
+		innerEvent := ev.InnerEvent
 		util.DebugLog(fmt.Sprintf("%#v\n", innerEvent), 0)
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.AppMentionEvent:
@@ -61,5 +64,5 @@ func (h *EventEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	}
+	})
 }

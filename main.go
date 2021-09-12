@@ -18,8 +18,8 @@ func main() {
 	server := serverwrap.NewServer(":13000")
 
 	server.AddHandle("/homeiot-to-slackbot", &endpoint.HomeIotEndpoint{}).Methods("POST")
-	server.AddHandle("/events-endpoint", &endpoint.EventEndpoint{}).Methods("POST")
-	server.AddHandle("/interactive", &endpoint.InteractiveEndpoint{}).Methods("POST")
+	server.AddHandle("/events-endpoint", endpoint.GetEventHandler()).Methods("POST")
+	server.AddHandle("/interactive", endpoint.GetInteractiveHandler()).Methods("POST")
 
 	server.Start()
 	defer server.Stop(60)

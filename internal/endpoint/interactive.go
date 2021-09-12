@@ -1,49 +1,50 @@
 package endpoint
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/followedwind/slackbot/internal/interactive"
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/slack-go/slack"
 	"net/http"
 	"strings"
+
+	"github.com/taketsuru-devel/gorilla-microservice-skeleton/slackwrap"
 )
 
-type InteractiveEndpoint struct{}
-
-func (i *InteractiveEndpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//情報取得
-	var payload slack.InteractionCallback
-	err := json.Unmarshal([]byte(r.FormValue("payload")), &payload)
-	if err != nil {
-		util.ErrorLog(fmt.Sprintf("Could not parse action response JSON: %v", err), 0)
-		//ここでエラーだとChannelの取得もできない
-		return
+func GetInteractiveHandler() *slackwrap.InteractiveEndpoint {
+	return &slackwrap.InteractiveEndpoint{
+		Handler: &interactiveHandler{},
 	}
-	channelId := payload.Channel.GroupConversation.Conversation.ID
-	command := payload.ActionCallback.BlockActions[0].Value
-	commandDisp := payload.ActionCallback.BlockActions[0].Text.Text
+}
 
-	util.DebugLog(fmt.Sprintf("command:%#v", payload.ActionCallback.BlockActions[0].Value), 0)
+type interactiveHandler struct{}
 
-	//とりあえず返事
-	api := util.GetSlackClient()
-	api.PostMessage(channelId, slack.MsgOptionText(fmt.Sprintf("%sを受け付けました", commandDisp), false))
+func (ih *interactiveHandler) Handle() slackwrap.InteractiveHandlerFunc {
+	return (func(w http.ResponseWriter, r *http.Request, ic *slack.InteractionCallback) {
+		channelId := ic.Channel.GroupConversation.Conversation.ID
+		command := ic.ActionCallback.BlockActions[0].Value
+		commandDisp := ic.ActionCallback.BlockActions[0].Text.Text
 
-	//モノに指令
-	commands := strings.Split(command, ":")
-	responseText := "処置しました"
-	if commands[0] == "iot" {
-		if err := interactive.IotInvoke(commands[1], commands[2]); err != nil {
-			responseText = fmt.Sprintf("処置に失敗しました: %v", err)
+		util.DebugLog(fmt.Sprintf("command:%#v", ic.ActionCallback.BlockActions[0].Value), 0)
+
+		//とりあえず返事
+		api := util.GetSlackClient()
+		api.PostMessage(channelId, slack.MsgOptionText(fmt.Sprintf("%sを受け付けました", commandDisp), false))
+
+		//モノに指令
+		commands := strings.Split(command, ":")
+		responseText := "処置しました"
+		if commands[0] == "iot" {
+			if err := interactive.IotInvoke(commands[1], commands[2]); err != nil {
+				responseText = fmt.Sprintf("処置に失敗しました: %v", err)
+			}
+		} else if commands[0] == "ec2" {
+			if err := interactive.Ec2Invoke(commands[1], commands[2]); err != nil {
+				responseText = fmt.Sprintf("処置に失敗しました: %v", err)
+			}
+		} else {
+			responseText = "対象が未定義です"
 		}
-	} else if commands[0] == "ec2" {
-		if err := interactive.Ec2Invoke(commands[1], commands[2]); err != nil {
-			responseText = fmt.Sprintf("処置に失敗しました: %v", err)
-		}
-	} else {
-		responseText = "対象が未定義です"
-	}
-	api.PostMessage(channelId, slack.MsgOptionText(responseText, false))
+		api.PostMessage(channelId, slack.MsgOptionText(responseText, false))
+	})
 }
