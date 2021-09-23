@@ -1,17 +1,15 @@
 package main
 
 import (
-	"flag"
 	"github.com/followedwind/slackbot/internal/endpoint"
 	"github.com/followedwind/slackbot/internal/util"
 	"github.com/taketsuru-devel/gorilla-microservice-skeleton/serverwrap"
 	"github.com/taketsuru-devel/gorilla-microservice-skeleton/skeletonutil"
+	"os"
 )
 
 func main() {
-	debug := flag.Bool("debug", false, "sets log level to debug")
-	flag.Parse()
-	util.InitLog(*debug)
+	util.InitLog(os.Getenv("LOG_DEBUG") == "True")
 	util.InitSlackClient(false, nil, nil)
 
 	server := serverwrap.NewServer(":13000")
@@ -20,7 +18,6 @@ func main() {
 	server.AddHandle("/events-endpoint", endpoint.GetEventHandler()).Methods("POST")
 	server.AddHandle("/interactive", endpoint.GetInteractiveHandler()).Methods("POST")
 
-	util.InfoLog("test", 3)
 	server.Start()
 	defer server.Stop(60)
 

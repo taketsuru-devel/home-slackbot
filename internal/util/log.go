@@ -13,17 +13,17 @@ import (
 )
 
 type httpWriter struct {
-	Endpoint string
-	Debug    bool
+	Endpoint    string
+	ShowConsole bool
 }
 
 func (h *httpWriter) Write(p []byte) (n int, err error) {
-	if h.Debug {
+	if h.ShowConsole {
 		fmt.Println(p)
 	}
 	request, err := http.NewRequest("POST", h.Endpoint, bytes.NewBuffer(p))
 	if err != nil {
-		if h.Debug {
+		if h.ShowConsole {
 			fmt.Println(err)
 		}
 		return 0, err
@@ -33,12 +33,12 @@ func (h *httpWriter) Write(p []byte) (n int, err error) {
 	client := &http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
-		if h.Debug {
+		if h.ShowConsole {
 			fmt.Println(err)
 		}
 		return 0, err
 	}
-	if h.Debug {
+	if h.ShowConsole {
 		body, _ := ioutil.ReadAll(res.Body)
 		defer res.Body.Close()
 		fmt.Println(body)
@@ -53,7 +53,7 @@ func InitLog(debug bool) {
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
-	log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL"), Debug: debug})
+	log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL"), ShowConsole: false})
 }
 
 func DebugLog(msg string, addStack int) {
