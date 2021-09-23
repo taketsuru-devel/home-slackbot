@@ -10,9 +10,8 @@ import (
 
 func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
-	prettyLog := flag.Bool("pretty_log", false, "sets pretty log")
 	flag.Parse()
-	util.InitLog(*debug, *prettyLog)
+	util.InitLog(*debug)
 	util.InitSlackClient(false, nil, nil)
 
 	server := serverwrap.NewServer(":13000")
@@ -21,6 +20,7 @@ func main() {
 	server.AddHandle("/events-endpoint", endpoint.GetEventHandler()).Methods("POST")
 	server.AddHandle("/interactive", endpoint.GetInteractiveHandler()).Methods("POST")
 
+	util.InfoLog("test", 3)
 	server.Start()
 	defer server.Stop(60)
 
