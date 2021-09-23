@@ -12,9 +12,13 @@ import (
 
 type httpWriter struct {
 	Endpoint string
+	Debug    bool
 }
 
 func (h *httpWriter) Write(p []byte) (n int, err error) {
+	if h.Debug {
+		fmt.Println(p)
+	}
 	request, err := http.NewRequest("POST", h.Endpoint, bytes.NewBuffer(p))
 	if err != nil {
 		return 0, err
@@ -37,7 +41,7 @@ func InitLog(debug bool, pretty bool) {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 	if pretty {
-		log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL")})
+		log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL"), Debug: debug})
 		//log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 }
