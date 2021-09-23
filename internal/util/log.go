@@ -1,21 +1,44 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"net/http"
 	"os"
 	"runtime"
 )
 
+type httpWriter struct {
+	Endpoint string
+}
+
+func (h *httpWriter) Write(p []byte) (n int, err error) {
+	request, err := http.NewRequest("POST", h.Endpoint, bytes.NewBuffer(p))
+	if err != nil {
+		return 0, err
+	}
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	client := &http.Client{}
+	_, err = client.Do(request)
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
+}
+
 func InitLog(debug bool, pretty bool) {
+
 	if debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 	if pretty {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL")})
+		//log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 }
 
