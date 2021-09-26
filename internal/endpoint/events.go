@@ -34,7 +34,7 @@ func (h *eventHandler) Handle() slackwrap.EventSubscribeHandlerFunc {
 		switch ev := innerEvent.Data.(type) {
 		case *slackevents.AppMentionEvent:
 			text := strings.ReplaceAll(ev.Text, "<@U01MY2T85LM>", "")
-			text = strings.ReplaceAll(text, "\u00a0", "") //nbsp
+			text = strings.TrimSpace(strings.ReplaceAll(text, "\u00a0", "")) //nbsp
 			if text == "" {
 				util.GetSlackClient().PostMessage(ev.Channel, commandList())
 			} else if text == "pw" {
@@ -58,8 +58,10 @@ func (h *eventHandler) Handle() slackwrap.EventSubscribeHandlerFunc {
 					opte := slack.NewOptionsSelectBlockElement("static_select", selectDefault, "pwselect", opts...)
 					notice := slack.NewTextBlockObject("plain_text", "以下から選択してください", false, false)
 					mbk := slack.NewSectionBlock(notice, nil, slack.NewAccessory(opte))
-					if _, _, err := util.GetSlackClient().PostMessage(ev.Channel, slack.MsgOptionBlocks(mbk)); err != nil {
+					if _, ts, err := util.GetSlackClient().PostMessage(ev.Channel, slack.MsgOptionBlocks(mbk)); err != nil {
 						fmt.Println(err)
+					} else {
+						util.InfoLog(fmt.Sprintf("selection ts:%s", ts), 0)
 					}
 				}
 			}
