@@ -3,47 +3,57 @@ package util
 import (
 	"bytes"
 	"fmt"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type httpWriter struct {
-	Endpoint string
-	Debug    bool
+	Endpoint    string
+	ShowConsole bool
 }
 
 func (h *httpWriter) Write(p []byte) (n int, err error) {
-	if h.Debug {
+	if h.ShowConsole {
 		fmt.Println(p)
 	}
 	request, err := http.NewRequest("POST", h.Endpoint, bytes.NewBuffer(p))
 	if err != nil {
+		if h.ShowConsole {
+			fmt.Println(err)
+		}
 		return 0, err
 	}
-	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	request.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
-	_, err = client.Do(request)
+	res, err := client.Do(request)
 	if err != nil {
+		if h.ShowConsole {
+			fmt.Println(err)
+		}
 		return 0, err
+	}
+	if h.ShowConsole {
+		body, _ := ioutil.ReadAll(res.Body)
+		defer res.Body.Close()
+		fmt.Println(body)
 	}
 	return len(p), nil
 }
 
-func InitLog(debug bool, pretty bool) {
+func InitLog(debug bool) {
 
 	if debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
-	if pretty {
-		log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL"), Debug: debug})
-		//log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
+	log.Logger = log.Output(&httpWriter{Endpoint: os.Getenv("LOGGER_ENDPOINT_URL"), ShowConsole: false})
 }
 
 func DebugLog(msg string, addStack int) {

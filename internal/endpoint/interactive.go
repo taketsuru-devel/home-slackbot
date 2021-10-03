@@ -11,25 +11,24 @@ import (
 	"github.com/taketsuru-devel/gorilla-microservice-skeleton/slackwrap"
 )
 
-func GetInteractiveHandler() *slackwrap.InteractiveEndpoint {
-	return &slackwrap.InteractiveEndpoint{
-		Handler: &interactiveHandler{},
-	}
-}
+type DefaultInteractiveHandler struct{}
 
-type interactiveHandler struct{}
-
-func (ih *interactiveHandler) Handle() slackwrap.InteractiveHandlerFunc {
-	return (func(w http.ResponseWriter, r *http.Request, ic *slack.InteractionCallback) {
+func (d *DefaultInteractiveHandler) InteractiveHandle() slackwrap.InteractiveHandlerFunc {
+	return (func(w http.ResponseWriter, r *http.Request, cli *slack.Client, ic *slack.InteractionCallback) (interrupt bool, err error) {
+		interrupt = true
 		channelId := ic.Channel.GroupConversation.Conversation.ID
 		command := ic.ActionCallback.BlockActions[0].Value
 		commandDisp := ic.ActionCallback.BlockActions[0].Text.Text
+		//OriginTs := ic.MessageTs
 
+		util.DebugLog(fmt.Sprintf("ic:%#v", ic), 0)
 		util.DebugLog(fmt.Sprintf("command:%#v", ic.ActionCallback.BlockActions[0].Value), 0)
 
 		//とりあえず返事
-		api := util.GetSlackClient()
-		api.PostMessage(channelId, slack.MsgOptionText(fmt.Sprintf("%sを受け付けました", commandDisp), false))
+		_, _, err = cli.PostMessage(channelId, slack.MsgOptionText(fmt.Sprintf("%sを受け付けました", commandDisp), false))
+		if err != nil {
+			return
+		}
 
 		//モノに指令
 		commands := strings.Split(command, ":")
@@ -45,6 +44,7 @@ func (ih *interactiveHandler) Handle() slackwrap.InteractiveHandlerFunc {
 		} else {
 			responseText = "対象が未定義です"
 		}
-		api.PostMessage(channelId, slack.MsgOptionText(responseText, false))
+		_, _, err = cli.PostMessage(channelId, slack.MsgOptionText(responseText, false))
+		return
 	})
 }
